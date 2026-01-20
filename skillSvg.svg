@@ -1,0 +1,66 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .cartoon-stroke {
+        stroke: #2c3e50; /* 深色描边 */
+        stroke-width: 6px;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .box-fill { fill: #e74c3c; } /* 红色箱子 */
+      .gear-fill { fill: #95a5a6; } /* 灰色齿轮 */
+      .bulb-fill { fill: #f1c40f; } /* 黄色灯泡 */
+      .pencil-body { fill: #f39c12; } /* 橙色铅笔杆 */
+      .pencil-tip { fill: #fde3a7; } /* 笔尖 */
+      .pencil-eraser { fill: #e9a7b6; } /* 橡皮擦 */
+      .text-fill { fill: #ffffff; } /* 白色文字 */
+      .clasp-fill { fill: #f1c40f; } /* 黄色卡扣 */
+    </style>
+  </defs>
+
+  <!-- Background removed for transparency -->
+
+  <g transform="translate(0, 10)">
+    <g transform="translate(40, 60) rotate(-20)">
+       <path class="cartoon-stroke gear-fill" d="M30,15 L35,5 L45,5 L50,15 L60,18 L68,10 L75,15 L70,25 L75,35 L85,40 L80,50 L70,52 L65,62 L55,62 L50,52 L40,50 L32,58 L25,52 L30,42 L20,35 L25,25 L35,22 Z"/>
+       <circle class="cartoon-stroke" cx="50" cy="38" r="8" fill="#ecf0f1"/>
+    </g>
+    
+    <g transform="translate(130, 50) rotate(15)">
+      <rect class="cartoon-stroke pencil-body" x="0" y="0" width="20" height="40"/>
+      <rect class="cartoon-stroke pencil-eraser" x="0" y="-10" width="20" height="10"/>
+      <path class="cartoon-stroke pencil-tip" d="M0,40 L10,55 L20,40 Z"/>
+    </g>
+     <g transform="translate(85, 40)">
+        <path class="cartoon-stroke bulb-fill" d="M30,0 C13.4,0 0,13.4 0,30 C0,40.5 6.2,49.6 15,54.5 L15,65 C15,67.8 17.2,70 20,70 L40,70 C42.8,70 45,67.8 45,65 L45,54.5 C53.8,49.6 60,40.5 60,30 C60,13.4 46.6,0 30,0 Z"/>
+        <line class="cartoon-stroke" x1="18" y1="58" x2="42" y2="58"/>
+        <line class="cartoon-stroke" x1="18" y1="64" x2="42" y2="64"/>
+        <path d="M40,10 Q50,15 50,30" stroke="white" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.6"/>
+    </g>
+  </g>
+
+  <g transform="translate(0, 20)">
+    <rect class="cartoon-stroke box-fill" x="25" y="80" width="150" height="90" rx="15" ry="15"/>
+    <line class="cartoon-stroke" x1="25" y1="110" x2="175" y2="110"/>
+    
+    <path class="cartoon-stroke" d="M70,80 L70,65 C70,55 130,55 130,65 L130,80" fill="none" stroke-width="8"/>
+    
+    <rect class="cartoon-stroke clasp-fill" x="55" y="102" width="15" height="15" rx="4"/>
+    <rect class="cartoon-stroke clasp-fill" x="130" y="102" width="15" height="15" rx="4"/>
+
+    <g transform="translate(35, 125)">
+      <!-- S -->
+      <path class="cartoon-stroke" d="M15,5 C5,5 5,15 10,18 C15,21 20,23 20,30 C20,40 5,40 2,32" fill="none" stroke="#ffffff"/>
+      <!-- K -->
+      <path class="cartoon-stroke" d="M28,2 L28,38 M40,2 L28,20 L42,38" fill="none" stroke="#ffffff"/>
+      <!-- I -->
+      <path class="cartoon-stroke" d="M52,5 L52,35 M48,5 L56,5 M48,35 L56,35" fill="none" stroke="#ffffff"/>
+      <!-- L -->
+      <path class="cartoon-stroke" d="M66,2 L66,36 L79,36" fill="none" stroke="#ffffff"/>
+      <!-- L -->
+      <path class="cartoon-stroke" d="M85,2 L85,36 L98,36" fill="none" stroke="#ffffff"/>
+      <!-- S -->
+      <path class="cartoon-stroke" d="M117,5 C107,5 107,15 112,18 C117,21 122,23 122,30 C122,40 107,40 104,32" fill="none" stroke="#ffffff"/>
+    </g>
+  </g>
+</svg>
