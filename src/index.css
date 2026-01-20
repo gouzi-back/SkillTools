@@ -8,15 +8,17 @@
   --color-border: #1f1f2e;
   --color-accent: #8b5cf6;
   --color-muted: #6b7280;
+  --color-foreground: #ffffff;
 }
 
-/* Light theme overrides */
+/* Light theme overrides - Softer & Warmer */
 :root.light {
-  --color-background: #f8f9fc;
+  --color-background: #f5f5f7;
   --color-surface: #ffffff;
-  --color-border: #e5e7eb;
+  --color-border: #e5e5eb;
   --color-accent: #7c3aed;
-  --color-muted: #6b7280;
+  --color-muted: #86868b;
+  --color-foreground: #1d1d1f;
 }
 
 /* Custom base styles for Cyberpunk Minimalist theme */
@@ -26,13 +28,8 @@
   }
 
   body {
-    @apply bg-background text-white font-sans antialiased;
+    @apply bg-background text-foreground font-sans antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
-  }
-
-  /* Light theme text */
-  :root.light body {
-    @apply text-gray-900;
   }
 
   /* Custom scrollbar */
@@ -81,11 +78,11 @@
 
   /* Sidebar nav item */
   .nav-item {
-    @apply relative flex items-center gap-3 px-4 py-3 text-muted hover:text-white transition-all duration-200 rounded-lg;
+    @apply relative flex items-center gap-3 px-4 py-3 text-muted hover:text-foreground transition-all duration-200 rounded-lg;
   }
 
   .nav-item.active {
-    @apply text-white bg-accent/10;
+    @apply text-foreground bg-accent/10;
   }
 
   .nav-item.active::before {

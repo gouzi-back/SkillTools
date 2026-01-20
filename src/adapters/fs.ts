@@ -1,6 +1,32 @@
-import { readFile, writeFile, mkdir } from '@tauri-apps/plugin-fs';
 import { join, basename } from '@tauri-apps/api/path';
+import { invoke } from '@tauri-apps/api/core';
 import type { Skill, SkillFormat } from '../types';
+
+// Custom fs functions that bypass Tauri's scope restrictions
+export async function customMkdir(path: string): Promise<void> {
+  await invoke('create_directory', { path });
+}
+
+export async function customWriteFile(path: string, content: string): Promise<void> {
+  await invoke('write_file_content', { path, content });
+}
+
+export async function customReadFile(path: string): Promise<string> {
+  return await invoke<string>('read_file_content', { path });
+}
+
+export async function customRemove(path: string, recursive: boolean): Promise<void> {
+  await invoke('remove_path', { path, recursive });
+}
+
+export async function customReadDir(path: string): Promise<Array<{ name: string; isDirectory: boolean; isFile: boolean }>> {
+  const entries = await invoke<Array<[string, boolean]>>('read_directory', { path });
+  return entries.map(([name, isDirectory]) => ({
+    name,
+    isDirectory,
+    isFile: !isDirectory
+  }));
+}
 
 /**
  * Read a skill file from disk
@@ -9,8 +35,8 @@ import type { Skill, SkillFormat } from '../types';
  */
 export async function readSkillFile(path: string, format: SkillFormat = 'antigravity'): Promise<Skill | null> {
   try {
-    const contentBytes = await readFile(path);
-    const content = new TextDecoder().decode(contentBytes);
+    const content = await customReadFile(path);
+    // contentBytes decode is no longer needed since customReadFile returns string
     const filename = await basename(path);
 
     // Default metadata
@@ -72,10 +98,10 @@ export async function readSkillFile(path: string, format: SkillFormat = 'antigra
  */
 export async function writeSkillFile(skill: Skill): Promise<void> {
   try {
-    const contentBytes = new TextEncoder().encode(skill.content);
-    await writeFile(skill.sourcePath, contentBytes);
+    // Write directly using custom Rust command
+    await customWriteFile(skill.sourcePath, skill.content);
   } catch (err) {
-    console.error(`Failed to write skill file: ${skill.sourcePath}`, err);
+    console.error(`Failed to write skill file with custom fs: ${skill.sourcePath}`, err);
     throw err;
   }
 }
@@ -120,17 +146,28 @@ export function parseSkillMetadata(content: string): { title: string; descriptio
  * Create a new skill directory structure and file
  */
 export async function createNewSkill(libraryPath: string, name: string): Promise<Skill | null> {
-  try {
-    const safeName = name.toLowerCase().replace(/[^a-z0-9]/g, '-');
-    const skillDir = await join(libraryPath, safeName);
+  console.log('--- Starting CreateNewSkill ---');
+  console.log('Target Library Path:', libraryPath);
+  console.log('Requested Name:', name);
 
-    // Create directory structure
-    await mkdir(skillDir, { recursive: true });
-    await mkdir(await join(skillDir, 'scripts'), { recursive: true });
-    await mkdir(await join(skillDir, 'examples'), { recursive: true });
-    await mkdir(await join(skillDir, 'resources'), { recursive: true });
+  try {
+    // Softer sanitization: remove common forbidden characters but keep letters, numbers, and CJK characters
+    const safeName = name.trim().replace(/[<>:"/\\|?*]/g, '-');
+    const skillDir = await join(libraryPath, safeName);
+    console.log('Resolved Skill Directory Path:', skillDir);
+
+    // Create directory structure using custom Rust command (bypasses scope)
+    console.log('Attempting to create directory:', skillDir);
+    await customMkdir(skillDir);
+
+    console.log('Creating subdirectories: scripts, examples, resources');
+    await customMkdir(await join(skillDir, 'scripts'));
+    await customMkdir(await join(skillDir, 'examples'));
+    await customMkdir(await join(skillDir, 'resources'));
 
     const skillFilePath = await join(skillDir, 'SKILL.md');
+    console.log('Initial metadata file path:', skillFilePath);
+
     const initialContent = `---
 name: "${name}"
 description: "在这里输入技能描述"
@@ -145,13 +182,20 @@ description: "在这里输入技能描述"
 在这里描述如何使用此技能。
 `;
 
-    const contentBytes = new TextEncoder().encode(initialContent);
-    await writeFile(skillFilePath, contentBytes);
+    // Write file using custom Rust command (bypasses scope)
+    await customWriteFile(skillFilePath, initialContent);
+    console.log('SKILL.md written successfully');
 
-    return readSkillFile(skillFilePath);
-  } catch (err) {
-    console.error('Failed to create new skill:', err);
-    return null;
+    const skill = await readSkillFile(skillFilePath);
+    if (!skill) {
+      console.error('Skill was created but readSkillFile returned null');
+    }
+    return skill;
+  } catch (err: any) {
+    console.error('!!! CRITICAL: createNewSkill failed !!!');
+    console.error('Error stack:', err?.stack);
+    console.error('Error message:', err?.message || err?.toString());
+    throw err; // Throwing so the UI can catch and display the real reason
   }
 }
 
@@ -160,14 +204,13 @@ description: "在这里输入技能描述"
  */
 export async function deleteSkill(skillPath: string): Promise<boolean> {
   try {
-    const { remove } = await import('@tauri-apps/plugin-fs');
     const { dirname } = await import('@tauri-apps/api/path');
 
     // Get the parent directory of the skill file (the skill folder)
     const skillDir = await dirname(skillPath);
 
-    // Remove the entire directory recursively
-    await remove(skillDir, { recursive: true });
+    // Remove the entire directory recursively using custom command
+    await customRemove(skillDir, true);
 
     return true;
   } catch (err) {
@@ -188,11 +231,11 @@ export interface SkillFolderItem {
  */
 export async function getSkillFolderContents(skillPath: string): Promise<SkillFolderItem[]> {
   try {
-    const { readDir } = await import('@tauri-apps/plugin-fs');
     const { dirname } = await import('@tauri-apps/api/path');
 
     const skillDir = await dirname(skillPath);
-    const entries = await readDir(skillDir);
+    // Use custom command to read directory
+    const entries = await customReadDir(skillDir);
 
     const items: SkillFolderItem[] = [];
 
@@ -207,7 +250,7 @@ export async function getSkillFolderContents(skillPath: string): Promise<SkillFo
       // Recursively get children for directories
       if (entry.isDirectory) {
         try {
-          const subEntries = await readDir(fullPath);
+          const subEntries = await customReadDir(fullPath);
           item.children = [];
           for (const subEntry of subEntries) {
             const subPath = await join(fullPath, subEntry.name);

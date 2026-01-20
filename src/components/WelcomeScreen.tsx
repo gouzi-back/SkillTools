@@ -73,7 +73,7 @@ export function WelcomeScreen() {
                     >
                         <Sparkles className="w-12 h-12 text-accent" />
                     </motion.div>
-                    <h1 className="text-3xl font-bold text-white mb-3">
+                    <h1 className="text-3xl font-bold text-foreground mb-3">
                         欢迎使用 <span className="text-gradient">本地skills可视化工具</span>
                     </h1>
                     <p className="text-muted">
@@ -88,7 +88,7 @@ export function WelcomeScreen() {
                             <FolderOpen className="w-5 h-5 text-accent" />
                         </div>
                         <div>
-                            <h2 className="font-semibold text-white">添加你的第一个技能库</h2>
+                            <h2 className="font-semibold text-foreground">添加你的第一个技能库</h2>
                             <p className="text-sm text-muted">选择包含技能文件的文件夹</p>
                         </div>
                     </div>
@@ -99,7 +99,7 @@ export function WelcomeScreen() {
                             onClick={handleSelectFolder}
                             className="w-full flex items-center justify-between px-4 py-3 bg-surface/50 border border-border/50 rounded-xl text-left hover:border-accent/50 transition-colors group"
                         >
-                            <span className={libraryPath ? 'text-white' : 'text-muted'}>
+                            <span className={libraryPath ? 'text-foreground' : 'text-muted'}>
                                 {libraryPath || '点击选择文件夹...'}
                             </span>
                             <ChevronRight className="w-4 h-4 text-muted group-hover:text-accent transition-colors" />
@@ -116,7 +116,7 @@ export function WelcomeScreen() {
                                     placeholder="技能库名称"
                                     value={libraryName}
                                     onChange={(e) => setLibraryName(e.target.value)}
-                                    className="w-full px-4 py-3 bg-surface/50 border border-border/50 rounded-xl text-white placeholder-muted focus:outline-none focus:border-accent/50 transition-colors"
+                                    className="w-full px-4 py-3 bg-surface/50 border border-border/50 rounded-xl text-foreground placeholder-muted focus:outline-none focus:border-accent/50 transition-colors"
                                 />
 
                                 <div className="flex gap-2">
@@ -126,7 +126,7 @@ export function WelcomeScreen() {
                                             onClick={() => setLibraryFormat(format)}
                                             className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium capitalize transition-colors ${libraryFormat === format
                                                 ? 'bg-accent text-white'
-                                                : 'bg-surface/50 text-muted hover:text-white'
+                                                : 'bg-surface/50 text-muted hover:text-foreground'
                                                 }`}
                                         >
                                             {format}

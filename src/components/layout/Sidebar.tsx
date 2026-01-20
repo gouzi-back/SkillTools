@@ -54,7 +54,7 @@ export function Sidebar() {
                             className={`
                 relative w-12 h-12 rounded-xl flex items-center justify-center
                 transition-colors duration-200
-                ${isActive ? 'bg-accent/20 text-accent' : 'text-muted hover:text-white hover:bg-white/5'}
+                ${isActive ? 'bg-accent/20 text-accent' : 'text-muted hover:text-foreground hover:bg-accent/10'}
               `}
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}

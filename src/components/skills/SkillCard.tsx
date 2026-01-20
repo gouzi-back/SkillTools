@@ -106,7 +106,7 @@ export function SkillCard({ skill, onClick }: SkillCardProps) {
                             <FileCode className={`w-5 h-5 ${colors.text}`} />
                         </div>
                         <div>
-                            <h3 className="font-semibold text-white group-hover:text-accent transition-colors">
+                            <h3 className="font-semibold text-foreground group-hover:text-accent transition-colors">
                                 {skill.title}
                             </h3>
                             <span className={`text-xs ${colors.text} capitalize`}>
@@ -118,7 +118,7 @@ export function SkillCard({ skill, onClick }: SkillCardProps) {
                     {/* More Options Button */}
                     <div className="relative">
                         <button
-                            className="p-1.5 rounded-lg opacity-0 group-hover:opacity-100 hover:bg-white/10 transition-all"
+                            className="p-1.5 rounded-lg opacity-0 group-hover:opacity-100 hover:bg-accent/5 transition-all"
                             onClick={handleMenuClick}
                         >
                             <MoreVertical className="w-4 h-4 text-muted" />
@@ -195,19 +195,19 @@ export function SkillCard({ skill, onClick }: SkillCardProps) {
                             className="bg-surface border border-border/50 rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl"
                             onClick={(e) => e.stopPropagation()}
                         >
-                            <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
+                            <h3 className="text-lg font-bold text-foreground mb-2 flex items-center gap-2">
                                 <Trash2 className="w-5 h-5 text-red-400" />
                                 确认删除技能
                             </h3>
                             <p className="text-sm text-muted mb-4">
-                                将删除 <strong className="text-white">{skill.title}</strong> 及其所有关联文件（包括 scripts/、examples/、resources/ 文件夹）。
+                                将删除 <strong className="text-foreground">{skill.title}</strong> 及其所有关联文件（包括 scripts/、examples/、resources/ 文件夹）。
                                 <br />
                                 <span className="text-red-400 font-medium">此操作无法撤销！</span>
                             </p>
                             <div className="flex gap-3">
                                 <button
                                     onClick={handleCancelDelete}
-                                    className="flex-1 py-2.5 rounded-xl border border-border/50 text-muted hover:text-white transition-colors"
+                                    className="flex-1 py-2.5 rounded-xl border border-border/50 text-muted hover:text-foreground transition-colors"
                                 >
                                     取消
                                 </button>

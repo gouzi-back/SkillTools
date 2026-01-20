@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Sparkles, Zap, ChevronRight, FolderPlus, FolderOpen } from 'lucide-react';
 import { useAppStore } from '../../store/appStore';
 import { createNewSkill } from '../../adapters/fs';
+import { useSkillScanner } from '../../hooks/useSkillScanner';
 import type { SkillLibrary, SkillFormat } from '../../types';
 
 /**
@@ -16,6 +17,7 @@ export function CreateSkillModal({ isOpen, onClose }: { isOpen: boolean; onClose
     const setCurrentView = useAppStore(s => s.setCurrentView);
     const setSelectedSkill = useAppStore(s => s.setSelectedSkill);
 
+    const { scanAllLibraries } = useSkillScanner();
     // Flow states
     const [step, setStep] = useState<'select_group' | 'new_group' | 'skill_name'>('select_group');
 
@@ -67,16 +69,34 @@ export function CreateSkillModal({ isOpen, onClose }: { isOpen: boolean; onClose
         const lib = (libraries as SkillLibrary[]).find(l => l.id === selectedLibId);
         if (!lib || !skillName) return;
 
+        const setGlobalError = useAppStore.getState().setError;
+
         try {
             const skill = await createNewSkill(lib.path, skillName);
             if (skill) {
+                console.log('Skill created successfully:', skill);
                 addSkill(skill);
                 setSelectedSkill(skill.id);
+
+                // Trigger a re-scan of all libraries to ensure sync
+                // Doing this non-blocking so the UI updates immediately
+                scanAllLibraries().catch(console.error);
+
                 setCurrentView('editor');
                 onClose();
+            } else {
+                setGlobalError('创建失败：文件创建后无法读取，请检查路径是否合法。');
             }
-        } catch (err) {
-            console.error('Failed to create skill:', err);
+        } catch (err: any) {
+            console.error('Create error caught in UI:', err);
+            const errMsg = err?.message || err?.toString() || '原因未知';
+            if (errMsg.includes('Permission denied')) {
+                setGlobalError(`权限不足：无法写入文件夹 "${lib.name}"。建议将文件夹移动到“下载”或“文档”目录。`);
+            } else if (errMsg.includes('File exists')) {
+                setGlobalError(`名称冲突：文件夹 "${skillName}" 已存在。`);
+            } else {
+                setGlobalError(`写入失败：${errMsg}`);
+            }
         }
     };
 
@@ -99,11 +119,11 @@ export function CreateSkillModal({ isOpen, onClose }: { isOpen: boolean; onClose
                 exit={{ opacity: 0, scale: 0.9, y: 20 }}
             >
                 <div className="px-6 py-4 border-b border-border/30 flex items-center justify-between">
-                    <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                    <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
                         <Sparkles className="w-5 h-5 text-accent" />
                         新建SKILL 技能
                     </h2>
-                    <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-lg text-muted hover:text-white transition-colors">
+                    <button onClick={onClose} className="p-2 hover:bg-accent/5 rounded-lg text-muted hover:text-foreground transition-colors">
                         <X className="w-5 h-5" />
                     </button>
                 </div>
@@ -126,7 +146,7 @@ export function CreateSkillModal({ isOpen, onClose }: { isOpen: boolean; onClose
                                                 key={lib.id}
                                                 onClick={() => setSelectedLibId(lib.id)}
                                                 className={`w-full flex items-center gap-4 p-4 rounded-xl border transition-all ${selectedLibId === lib.id
-                                                    ? 'bg-accent/10 border-accent text-white'
+                                                    ? 'bg-accent/10 border-accent text-foreground'
                                                     : 'bg-surface/50 border-border/50 text-muted hover:border-border'
                                                     }`}
                                             >
@@ -151,7 +171,7 @@ export function CreateSkillModal({ isOpen, onClose }: { isOpen: boolean; onClose
                                         {/* New Group Button */}
                                         <button
                                             onClick={() => setStep('new_group')}
-                                            className="w-full flex items-center gap-4 p-4 rounded-xl border border-dashed border-border/50 text-muted hover:text-white hover:border-accent/50 hover:bg-accent/5 transition-all"
+                                            className="w-full flex items-center gap-4 p-4 rounded-xl border border-dashed border-border/50 text-muted hover:text-foreground hover:border-accent/50 hover:bg-accent/5 transition-all"
                                         >
                                             <div className="p-2 rounded-lg bg-white/5">
                                                 <FolderPlus className="w-4 h-4" />
@@ -188,7 +208,7 @@ export function CreateSkillModal({ isOpen, onClose }: { isOpen: boolean; onClose
                                             onClick={handleSelectFolder}
                                             className="w-full flex items-center justify-between px-4 py-3 bg-surface/50 border border-border/50 rounded-xl text-left hover:border-accent/50 transition-colors group"
                                         >
-                                            <span className={`text-sm truncate ${newLibPath ? 'text-white' : 'text-muted'}`}>
+                                            <span className={`text-sm truncate ${newLibPath ? 'text-foreground' : 'text-muted'}`}>
                                                 {newLibPath || '点击选择新目录...'}
                                             </span>
                                             <FolderOpen className="w-4 h-4 text-muted group-hover:text-accent" />
@@ -203,7 +223,7 @@ export function CreateSkillModal({ isOpen, onClose }: { isOpen: boolean; onClose
                                                     type="text"
                                                     value={newLibName}
                                                     onChange={(e) => setNewLibName(e.target.value)}
-                                                    className="w-full px-4 py-3 bg-surface border border-border/50 rounded-xl text-white placeholder-muted focus:outline-none focus:border-accent transition-colors"
+                                                    className="w-full px-4 py-3 bg-surface border border-border/50 rounded-xl text-foreground placeholder-muted focus:outline-none focus:border-accent transition-colors"
                                                 />
                                             </div>
                                             <div>
@@ -215,7 +235,7 @@ export function CreateSkillModal({ isOpen, onClose }: { isOpen: boolean; onClose
                                                             onClick={() => setNewLibFormat(format)}
                                                             className={`flex-1 px-3 py-2 rounded-lg text-xs font-medium capitalize transition-colors ${newLibFormat === format
                                                                 ? 'bg-accent text-white'
-                                                                : 'bg-surface/50 text-muted hover:text-white border border-transparent'
+                                                                : 'bg-surface/50 text-muted hover:text-foreground border border-transparent'
                                                                 }`}
                                                         >
                                                             {format}
@@ -230,7 +250,7 @@ export function CreateSkillModal({ isOpen, onClose }: { isOpen: boolean; onClose
                                 <div className="flex gap-3 pt-4">
                                     <button
                                         onClick={() => setStep('select_group')}
-                                        className="flex-1 py-3 text-muted hover:text-white transition-colors"
+                                        className="flex-1 py-3 text-muted hover:text-foreground transition-colors"
                                     >
                                         取消
                                     </button>
@@ -261,7 +281,7 @@ export function CreateSkillModal({ isOpen, onClose }: { isOpen: boolean; onClose
                                         placeholder="例如：文件转换辅助..."
                                         value={skillName}
                                         onChange={(e) => setSkillName(e.target.value)}
-                                        className="w-full px-4 py-3 bg-surface border border-border/50 rounded-xl text-white placeholder-muted focus:outline-none focus:border-accent transition-colors"
+                                        className="w-full px-4 py-3 bg-surface border border-border/50 rounded-xl text-foreground placeholder-muted focus:outline-none focus:border-accent transition-colors"
                                     />
                                 </div>
 
@@ -279,7 +299,7 @@ export function CreateSkillModal({ isOpen, onClose }: { isOpen: boolean; onClose
                                 <div className="flex gap-3 mt-4">
                                     <button
                                         onClick={() => setStep('select_group')}
-                                        className="flex-1 py-3 text-muted hover:text-white transition-colors"
+                                        className="flex-1 py-3 text-muted hover:text-foreground transition-colors"
                                     >
                                         返回
                                     </button>

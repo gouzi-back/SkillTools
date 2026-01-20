@@ -7,13 +7,17 @@ import { Dashboard } from './components/Dashboard';
 import { WelcomeScreen } from './components/WelcomeScreen';
 import { Settings } from './components/Settings';
 import { Editor } from './components/Editor';
+import { motion, AnimatePresence } from 'framer-motion';
+import { X } from 'lucide-react';
 
 /**
  * Main App Component
  */
 function App() {
-  const currentView = useAppStore((s) => s.currentView) || 'welcome';
-  const preferences = useAppStore((s) => s.preferences) || {};
+  const currentView = useAppStore((s) => s.currentView) || 'dashboard';
+  const preferences = useAppStore((s) => s.preferences);
+  const error = useAppStore((s) => s.error);
+  const setError = useAppStore((s) => s.setError);
   const hasCompletedOnboarding = !!preferences.hasCompletedOnboarding;
 
   const { scanAllLibraries } = useSkillScanner();
@@ -63,7 +67,32 @@ function App() {
 
   return (
     <AppLayout>
-      {screen}
+      <div className="relative flex-1 flex flex-col overflow-hidden">
+        {/* Global Error Banner */}
+        <AnimatePresence>
+          {error && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="bg-red-500 text-white px-6 py-3 flex items-center justify-between gap-4 z-[100] shadow-lg"
+            >
+              <div className="flex items-center gap-3">
+                <span className="text-xl">⚠️</span>
+                <span className="font-semibold">{error}</span>
+              </div>
+              <button
+                onClick={() => setError(null)}
+                className="p-1 hover:bg-white/20 rounded-lg transition-colors"
+                title="关闭"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+        {screen}
+      </div>
     </AppLayout>
   );
 }

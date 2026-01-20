@@ -1,12 +1,11 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useAppStore } from '../store/appStore';
-import { deleteSkill, getSkillFolderContents, type SkillFolderItem } from '../adapters/fs';
+import { deleteSkill, getSkillFolderContents, type SkillFolderItem, customReadFile, customWriteFile } from '../adapters/fs';
 import { Save, FileCode, Eye, PenTool, Layout, Check, AlertCircle, Sparkles, X, Trash2, FolderOpen, File, ChevronRight, ChevronDown, ArrowLeft } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkFrontmatter from 'remark-frontmatter';
 import { Highlight, themes } from 'prism-react-renderer';
-import { readFile, writeFile } from '@tauri-apps/plugin-fs';
 
 // Stable reference for plugins
 const REMARK_PLUGINS = [remarkGfm, remarkFrontmatter];
@@ -55,10 +54,12 @@ function isMarkdownFile(path: string): boolean {
  */
 function MarkdownPreview({ content }: { content: string }) {
     return (
-        <article className="prose prose-invert prose-purple !max-w-none 
-            prose-headings:font-bold prose-h1:text-4xl prose-h1:border-b prose-h1:border-border/50 prose-h1:pb-4
-            prose-p:text-white/70 prose-p:leading-relaxed
-            prose-table:border prose-table:border-border/50 prose-th:bg-white/5 prose-td:border-border/30">
+        <article className="prose prose-purple dark:prose-invert !max-w-none 
+            prose-headings:font-bold prose-headings:text-foreground prose-h1:text-4xl prose-h1:border-b prose-h1:border-border/50 prose-h1:pb-4
+            prose-p:text-foreground/80 prose-p:leading-relaxed prose-li:text-foreground/80
+            prose-strong:text-foreground prose-a:text-accent
+            prose-code:text-accent prose-code:bg-accent/10 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:before:content-none prose-code:after:content-none
+            prose-table:border prose-table:border-border/50 prose-td:border-border/30 prose-th:text-foreground">
             <ReactMarkdown remarkPlugins={REMARK_PLUGINS}>
                 {content}
             </ReactMarkdown>
@@ -70,8 +71,12 @@ function MarkdownPreview({ content }: { content: string }) {
  * CodePreview - Syntax highlighted code viewer
  */
 function CodePreview({ content, language }: { content: string; language: string }) {
+    // Detect theme (system theme fallback logic included in App.tsx but simplified here)
+    const storedTheme = useAppStore(s => s.preferences.theme);
+    const isDark = storedTheme === 'dark' || (storedTheme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
     return (
-        <Highlight theme={themes.nightOwl} code={content} language={language as any}>
+        <Highlight theme={isDark ? themes.nightOwl : themes.github} code={content} language={language as any}>
             {({ style, tokens, getLineProps, getTokenProps }) => (
                 <pre style={{ ...style, background: 'transparent', padding: '2rem', margin: 0, overflow: 'auto' }} className="text-sm leading-relaxed">
                     {tokens.map((line, i) => (
@@ -121,7 +126,7 @@ function FileTreeItem({
             <div
                 className={`flex items-center gap-2 py-1.5 px-2 rounded-lg cursor-pointer transition-all ${isSelected ? 'bg-accent/20 text-accent' :
                     isSkillMd ? 'text-accent/80 hover:bg-accent/10' :
-                        'hover:bg-white/5 text-white/70'
+                        'hover:bg-accent/5 text-foreground/70 hover:text-foreground'
                     }`}
                 style={{ paddingLeft: `${depth * 12 + 8}px` }}
                 onClick={handleClick}
@@ -224,8 +229,8 @@ export function Editor() {
 
         setIsLoadingFile(true);
         try {
-            const bytes = await readFile(path);
-            const content = new TextDecoder().decode(bytes);
+            // Use customReadFile which returns string directly and bypasses scope
+            const content = await customReadFile(path);
             setCurrentFilePath(path);
             setFileContent(content);
             setOriginalContent(content);
@@ -250,13 +255,15 @@ export function Editor() {
     const handleSave = async () => {
         if (!currentFilePath || isSaving) return;
 
+        console.log('Attempting to save to:', currentFilePath);
         setIsSaving(true);
         setSaveStatus('idle');
         setLastError(null);
 
         try {
-            const contentBytes = new TextEncoder().encode(fileContent);
-            await writeFile(currentFilePath, contentBytes);
+            // Use customWriteFile to bypass scope
+            await customWriteFile(currentFilePath, fileContent);
+            console.log('File written successfully');
 
             setOriginalContent(fileContent);
             setHasUnsavedChanges(false);
@@ -272,13 +279,17 @@ export function Editor() {
                     description,
                     lastModified: Date.now()
                 });
+                console.log('Skill metadata updated in store');
             }
 
             setTimeout(() => setSaveStatus('idle'), 3000);
         } catch (err: any) {
-            console.error('Save failed:', err);
-            setLastError(err?.toString() || '保存失败：请检查权限');
+            console.error('Save failed details:', err);
+            const errMsg = err?.toString() || '保存失败：请检查文件夹权限';
+            setLastError(errMsg);
             setSaveStatus('error');
+            // Also notify global store
+            useAppStore.getState().setError(errMsg);
         } finally {
             setIsSaving(false);
         }
@@ -324,17 +335,17 @@ export function Editor() {
             {showDeleteConfirm && (
                 <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
                     <div className="bg-surface border border-border/50 rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl">
-                        <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
+                        <h3 className="text-lg font-bold text-foreground mb-2 flex items-center gap-2">
                             <Trash2 className="w-5 h-5 text-red-400" />
                             确认删除技能
                         </h3>
                         <p className="text-sm text-muted mb-4">
-                            将删除 <strong className="text-white">{skill.title}</strong> 及其所有关联文件。此操作无法撤销！
+                            将删除 <strong className="text-foreground">{skill.title}</strong> 及其所有关联文件。此操作无法撤销！
                         </p>
                         <div className="flex gap-3">
                             <button
                                 onClick={() => setShowDeleteConfirm(false)}
-                                className="flex-1 py-2.5 rounded-xl border border-border/50 text-muted hover:text-white transition-colors"
+                                className="flex-1 py-2.5 rounded-xl border border-border/50 text-muted hover:text-foreground transition-colors"
                             >
                                 取消
                             </button>
@@ -376,7 +387,7 @@ export function Editor() {
                 <div className="flex items-center gap-3">
                     <button
                         onClick={() => setCurrentView('dashboard')}
-                        className="p-2 rounded-lg hover:bg-white/5 text-muted hover:text-white transition-colors"
+                        className="p-2 rounded-lg hover:bg-accent/5 text-muted hover:text-foreground transition-colors"
                     >
                         <ArrowLeft size={18} />
                     </button>
@@ -386,7 +397,7 @@ export function Editor() {
                     </div>
                     <div>
                         <div className="flex items-center gap-2">
-                            <h2 className="font-bold text-white text-sm">{skill.title}</h2>
+                            <h2 className="font-bold text-foreground text-sm">{skill.title}</h2>
                             <span className="text-muted text-xs">/ {currentFileName}</span>
                             {hasUnsavedChanges && (
                                 <span className="flex items-center gap-1 text-[9px] font-black uppercase text-amber-400 bg-amber-400/10 px-1.5 py-0.5 rounded border border-amber-400/20">
@@ -411,7 +422,7 @@ export function Editor() {
                                 onClick={() => setViewMode(mode.id as any)}
                                 className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-all ${viewMode === mode.id
                                     ? 'bg-accent text-white'
-                                    : 'text-muted hover:text-white'
+                                    : 'text-muted hover:text-foreground'
                                     }`}
                             >
                                 <mode.icon size={12} />
@@ -458,7 +469,7 @@ export function Editor() {
                 {/* Left Sidebar: File Tree */}
                 <aside className="w-56 bg-surface/20 border-r border-border/30 flex flex-col overflow-hidden">
                     <div className="p-3 border-b border-border/20">
-                        <h3 className="text-[10px] font-black text-white/40 uppercase tracking-wider flex items-center gap-2">
+                        <h3 className="text-[10px] font-black text-foreground/40 uppercase tracking-wider flex items-center gap-2">
                             <FolderOpen size={10} />
                             文件结构
                         </h3>
@@ -486,7 +497,7 @@ export function Editor() {
                     {(viewMode === 'edit' || viewMode === 'split') && (
                         <div className={`flex-1 flex flex-col overflow-hidden ${viewMode === 'split' ? 'border-r border-border/20' : ''}`}>
                             <textarea
-                                className="flex-1 w-full h-full bg-background/30 p-6 resize-none focus:outline-none font-mono text-[13px] leading-relaxed text-white/80 selection:bg-accent/40 custom-scrollbar"
+                                className="flex-1 w-full h-full bg-background/30 p-6 resize-none focus:outline-none font-mono text-[13px] leading-relaxed text-foreground selection:bg-accent/40 custom-scrollbar"
                                 value={fileContent}
                                 onChange={handleContentChange}
                                 placeholder="// 开始编辑..."
@@ -512,17 +523,17 @@ export function Editor() {
                 {/* Right Sidebar: Metadata */}
                 <aside className="w-64 bg-surface/30 border-l border-border/30 p-5 flex flex-col gap-6 hidden xl:flex overflow-y-auto">
                     <section className="space-y-3">
-                        <header className="text-[10px] font-black text-white/40 uppercase tracking-wider">
+                        <header className="text-[10px] font-black text-foreground/40 uppercase tracking-wider">
                             当前文件
                         </header>
                         <div className="bg-background/50 p-3 rounded-lg border border-border/50">
-                            <div className="text-xs font-medium text-white mb-1">{currentFileName}</div>
+                            <div className="text-xs font-medium text-foreground mb-1">{currentFileName}</div>
                             <div className="text-[10px] text-muted uppercase">{language}</div>
                         </div>
                     </section>
 
                     <section className="space-y-3">
-                        <header className="text-[10px] font-black text-white/40 uppercase tracking-wider">
+                        <header className="text-[10px] font-black text-foreground/40 uppercase tracking-wider">
                             技能格式
                         </header>
                         <div className={`inline-flex items-center px-2 py-1 rounded text-[10px] font-bold uppercase ${skill.format === 'antigravity' ? 'bg-purple-500/20 text-purple-400' :
@@ -538,7 +549,7 @@ export function Editor() {
                                 <Sparkles size={10} />
                                 提示
                             </h4>
-                            <p className="text-[10px] text-white/50 leading-relaxed">
+                            <p className="text-[10px] text-foreground/50 leading-relaxed">
                                 点击左侧文件树可切换编辑不同文件。支持 Java、Python、SQL、JSON 等多种语法高亮。
                             </p>
                         </div>

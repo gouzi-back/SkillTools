@@ -1,6 +1,5 @@
 import { useCallback } from 'react';
 import { useAppStore } from '../store/appStore';
-import { readDir } from '@tauri-apps/plugin-fs';
 import { join } from '@tauri-apps/api/path';
 import { readSkillFile } from '../adapters/fs';
 import type { SkillFormat } from '../types';
@@ -19,7 +18,8 @@ export function useSkillScanner() {
         if (depth > 5) return; // Prevent infinite recursion
 
         try {
-            const entries = await readDir(dirPath);
+            // Use customReadDir to bypass Tauri checks
+            const entries = await import('../adapters/fs').then(m => m.customReadDir(dirPath));
 
             // Look for SKILL.md first (Antigravity/Standard format)
             const skillFile = entries.find(e => e.isFile && e.name.toUpperCase() === 'SKILL.MD');

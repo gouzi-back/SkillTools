@@ -119,7 +119,7 @@ export function Settings() {
         <div className="flex-1 flex flex-col overflow-hidden">
             {/* Header */}
             <header className="px-8 py-6 border-b border-border/30">
-                <h1 className="text-2xl font-bold text-white">设置</h1>
+                <h1 className="text-2xl font-bold text-foreground">设置</h1>
                 <p className="text-muted mt-1">管理技能库路径和应用配置</p>
             </header>
 
@@ -128,7 +128,7 @@ export function Settings() {
                 {/* Libraries section */}
                 <section className="mb-8">
                     <div className="flex items-center justify-between mb-4">
-                        <h2 className="text-lg font-semibold text-white">技能库</h2>
+                        <h2 className="text-lg font-semibold text-foreground">技能库</h2>
                         <motion.button
                             onClick={handleSelectFolder}
                             className="flex items-center gap-2 px-4 py-2 bg-accent/10 hover:bg-accent/20 text-accent rounded-lg transition-colors"
@@ -162,7 +162,7 @@ export function Settings() {
 
                 {/* Theme section */}
                 <section className="mb-8">
-                    <h2 className="text-lg font-semibold text-white mb-4">主题</h2>
+                    <h2 className="text-lg font-semibold text-foreground mb-4">主题</h2>
                     <div className="glass-card p-4">
                         <div className="flex gap-3">
                             {[
@@ -175,7 +175,7 @@ export function Settings() {
                                     onClick={() => setPreferences({ theme: option.key as 'light' | 'dark' | 'system' })}
                                     className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl transition-all ${preferences.theme === option.key
                                         ? 'bg-accent text-white font-medium'
-                                        : 'bg-surface/50 text-muted hover:text-white border border-border/50 hover:border-accent/50'
+                                        : 'bg-surface/50 text-muted hover:text-foreground border border-border/50 hover:border-accent/50'
                                         }`}
                                 >
                                     <span>{option.icon}</span>
@@ -188,14 +188,14 @@ export function Settings() {
 
                 {/* About section */}
                 <section>
-                    <h2 className="text-lg font-semibold text-white mb-4">关于</h2>
+                    <h2 className="text-lg font-semibold text-foreground mb-4">关于</h2>
                     <div className="glass-card p-6">
                         <div className="flex items-center gap-4">
                             <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-accent/20 to-purple-600/20 flex items-center justify-center">
                                 <span className="text-2xl">✨</span>
                             </div>
                             <div>
-                                <h3 className="font-semibold text-white">本地skills可视化工具</h3>
+                                <h3 className="font-semibold text-foreground">本地skills可视化工具</h3>
                                 <p className="text-sm text-muted">版本 1.0.0</p>
                             </div>
                         </div>
@@ -223,7 +223,7 @@ export function Settings() {
                             className="bg-surface border border-border/50 rounded-2xl p-6 max-w-lg w-full mx-4 shadow-2xl"
                             onClick={(e) => e.stopPropagation()}
                         >
-                            <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                            <h3 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
                                 <FolderPlus className="w-5 h-5 text-accent" />
                                 添加技能库
                             </h3>
@@ -231,7 +231,7 @@ export function Settings() {
                             <div className="space-y-4">
                                 <div>
                                     <label className="text-sm text-muted mb-1.5 block">路径</label>
-                                    <div className="text-sm text-white/70 bg-background/50 p-3 rounded-lg border border-border/50 truncate">
+                                    <div className="text-sm text-foreground/70 bg-background/50 p-3 rounded-lg border border-border/50 truncate">
                                         {newLibPath}
                                     </div>
                                 </div>
@@ -242,7 +242,7 @@ export function Settings() {
                                         type="text"
                                         value={newLibName}
                                         onChange={(e) => setNewLibName(e.target.value)}
-                                        className="w-full px-4 py-2.5 bg-background border border-border/50 rounded-lg text-white placeholder-muted focus:outline-none focus:border-accent transition-colors"
+                                        className="w-full px-4 py-2.5 bg-background border border-border/50 rounded-lg text-foreground placeholder-muted focus:outline-none focus:border-accent transition-colors"
                                     />
                                 </div>
 
@@ -260,7 +260,7 @@ export function Settings() {
                                                     onClick={() => setNewLibFormat(format)}
                                                     className={`px-3 py-2 rounded-lg text-sm font-medium capitalize transition-all ${isSelected
                                                         ? `${colors.bgButton} text-white`
-                                                        : 'bg-surface/50 text-muted hover:text-white border border-border/50'
+                                                        : 'bg-surface/50 text-muted hover:text-foreground border border-border/50'
                                                         }`}
                                                 >
                                                     {format}
@@ -289,7 +289,7 @@ export function Settings() {
                                                 value={customFormat}
                                                 onChange={(e) => setCustomFormat(e.target.value)}
                                                 onKeyDown={(e) => e.key === 'Enter' && handleAddCustomFormat()}
-                                                className="flex-1 px-3 py-2 bg-background border border-border/50 rounded-lg text-white text-sm placeholder-muted focus:outline-none focus:border-accent"
+                                                className="flex-1 px-3 py-2 bg-background border border-border/50 rounded-lg text-foreground text-sm placeholder-muted focus:outline-none focus:border-accent"
                                                 autoFocus
                                             />
                                             <button
@@ -313,7 +313,7 @@ export function Settings() {
 
                                     {/* Current selection display */}
                                     <div className="mt-3 text-xs text-muted">
-                                        当前选择: <span className="text-white font-medium">{newLibFormat}</span>
+                                        当前选择: <span className="text-foreground font-medium">{newLibFormat}</span>
                                     </div>
                                 </div>
                             </div>
@@ -321,7 +321,7 @@ export function Settings() {
                             <div className="flex gap-3 mt-6">
                                 <button
                                     onClick={() => setShowAddModal(false)}
-                                    className="flex-1 py-2.5 rounded-xl border border-border/50 text-muted hover:text-white transition-colors"
+                                    className="flex-1 py-2.5 rounded-xl border border-border/50 text-muted hover:text-foreground transition-colors"
                                 >
                                     取消
                                 </button>
@@ -379,7 +379,7 @@ function LibraryItem({
         >
             <div className={`w-2 h-10 rounded-full ${colors.bg}`} />
             <div className="flex-1 min-w-0">
-                <h3 className="font-medium text-white truncate">{library.name}</h3>
+                <h3 className="font-medium text-foreground truncate">{library.name}</h3>
                 <p className="text-sm text-muted truncate">{library.path}</p>
             </div>
 
@@ -399,7 +399,7 @@ function LibraryItem({
                                         }}
                                         className={`px-2 py-1 text-[11px] rounded font-medium capitalize transition-all ${library.format === format
                                             ? fColors.bgButton + ' text-white'
-                                            : 'text-muted hover:text-white hover:bg-white/10'
+                                            : 'text-muted hover:text-foreground hover:bg-white/10'
                                             }`}
                                     >
                                         {format}
@@ -416,7 +416,7 @@ function LibraryItem({
                                     value={customInput}
                                     onChange={(e) => setCustomInput(e.target.value)}
                                     onKeyDown={(e) => e.key === 'Enter' && handleCustomSubmit()}
-                                    className="flex-1 px-2 py-1 bg-background border border-border/50 rounded text-xs text-white"
+                                    className="flex-1 px-2 py-1 bg-background border border-border/50 rounded text-xs text-foreground"
                                     autoFocus
                                 />
                                 <button onClick={handleCustomSubmit} className="p-1 bg-accent rounded">

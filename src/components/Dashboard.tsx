@@ -34,7 +34,7 @@ export function Dashboard() {
             <header className="px-8 py-6 border-b border-border/30">
                 <div className="flex items-center justify-between mb-6">
                     <div>
-                        <h1 className="text-2xl font-bold text-white">技能库</h1>
+                        <h1 className="text-2xl font-bold text-foreground">技能库</h1>
                         <p className="text-muted mt-1">管理本地skills</p>
                     </div>
                     <motion.button
@@ -57,7 +57,7 @@ export function Dashboard() {
                             placeholder="模糊搜索名称或描述..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-11 pr-4 py-3 bg-surface/50 border border-border/50 rounded-xl text-white placeholder-muted focus:outline-none focus:border-accent/50 transition-colors"
+                            className="w-full pl-11 pr-4 py-3 bg-surface/50 border border-border/50 rounded-xl text-foreground placeholder-muted focus:outline-none focus:border-accent/50 transition-colors"
                         />
                     </div>
                     {isLoading && (
@@ -169,7 +169,7 @@ function EmptyState({ isSearching }: { isSearching: boolean }) {
             <div className="w-20 h-20 rounded-2xl bg-accent/10 flex items-center justify-center mb-6">
                 <Search className="w-10 h-10 text-accent/50" />
             </div>
-            <h3 className="text-xl font-semibold text-white mb-2">
+            <h3 className="text-xl font-semibold text-foreground mb-2">
                 {isSearching ? '没有找到匹配的技能' : '暂无技能'}
             </h3>
             <p className="text-muted mb-6 max-w-md">
