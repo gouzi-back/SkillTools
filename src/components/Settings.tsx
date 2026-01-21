@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FolderPlus, Trash2, RefreshCw, Info, Edit2, X, Check, Plus } from 'lucide-react';
+import { FolderPlus, Trash2, RefreshCw, Info, Edit2, X, Check, Plus, Keyboard, Type } from 'lucide-react';
 import { useAppStore } from '../store/appStore';
 import type { SkillLibrary, SkillFormat } from '../types';
 import { PRESET_FORMATS } from '../types/skill';
@@ -46,6 +46,7 @@ export function Settings() {
     const [newLibFormat, setNewLibFormat] = useState<string>('antigravity');
     const [customFormat, setCustomFormat] = useState('');
     const [showCustomInput, setShowCustomInput] = useState(false);
+    const [isManualInput, setIsManualInput] = useState(false);
 
     // Get all unique formats from existing libraries for suggestions
     const existingFormats = Array.from(new Set(libraries.map(lib => lib.format)));
@@ -75,10 +76,35 @@ export function Settings() {
                     setNewLibFormat('antigravity');
                 }
 
+                setIsManualInput(false);
                 setShowAddModal(true);
             }
         } catch (e) {
             console.error('Failed to open folder dialog:', e);
+        }
+    };
+
+    const handleOpenManualInput = () => {
+        setNewLibPath('');
+        setNewLibName('');
+        setNewLibFormat('antigravity');
+        setIsManualInput(true);
+        setShowAddModal(true);
+    };
+
+    const handleManualPathChange = (path: string) => {
+        setNewLibPath(path);
+        // Auto-extract folder name from path
+        const folderName = path.split(/[/\\]/).filter(Boolean).pop() || '';
+        if (folderName && !newLibName) {
+            setNewLibName(folderName);
+        }
+        // Auto-detect format
+        const lowerName = folderName.toLowerCase();
+        if (lowerName.includes('cursor')) {
+            setNewLibFormat('cursor');
+        } else if (lowerName.includes('claude')) {
+            setNewLibFormat('claude');
         }
     };
 
@@ -129,15 +155,28 @@ export function Settings() {
                 <section className="mb-8">
                     <div className="flex items-center justify-between mb-4">
                         <h2 className="text-lg font-semibold text-foreground">技能库</h2>
-                        <motion.button
-                            onClick={handleSelectFolder}
-                            className="flex items-center gap-2 px-4 py-2 bg-accent/10 hover:bg-accent/20 text-accent rounded-lg transition-colors"
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                        >
-                            <FolderPlus className="w-4 h-4" />
-                            添加路径
-                        </motion.button>
+                        <div className="flex items-center gap-2">
+                            <motion.button
+                                onClick={handleSelectFolder}
+                                className="flex items-center gap-2 px-4 py-2 bg-accent/10 hover:bg-accent/20 text-accent rounded-lg transition-colors"
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                title="选择文件夹"
+                            >
+                                <FolderPlus className="w-4 h-4" />
+                                选择文件夹
+                            </motion.button>
+                            <motion.button
+                                onClick={handleOpenManualInput}
+                                className="flex items-center gap-2 px-4 py-2 bg-surface/50 hover:bg-surface text-muted hover:text-foreground border border-border/50 rounded-lg transition-colors"
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                title="手动输入路径（支持隐藏文件夹）"
+                            >
+                                <Type className="w-4 h-4" />
+                                手动输入
+                            </motion.button>
+                        </div>
                     </div>
 
                     {libraries.length === 0 ? (
@@ -231,10 +270,36 @@ export function Settings() {
                             <div className="space-y-4">
                                 <div>
                                     <label className="text-sm text-muted mb-1.5 block">路径</label>
-                                    <div className="text-sm text-foreground/70 bg-background/50 p-3 rounded-lg border border-border/50 truncate">
-                                        {newLibPath}
-                                    </div>
+                                    {isManualInput ? (
+                                        <>
+                                            <input
+                                                type="text"
+                                                value={newLibPath}
+                                                onChange={(e) => handleManualPathChange(e.target.value)}
+                                                placeholder="例如: /Users/yourname/.agent/skills"
+                                                className="w-full px-4 py-2.5 bg-background border border-border/50 rounded-lg text-foreground placeholder-muted focus:outline-none focus:border-accent transition-colors font-mono text-sm"
+                                                autoFocus
+                                            />
+                                            <p className="text-xs text-muted mt-1.5">
+                                                💡 支持以 <code className="bg-white/10 px-1 rounded">.</code> 开头的隐藏文件夹
+                                            </p>
+                                        </>
+                                    ) : (
+                                        <div className="text-sm text-foreground/70 bg-background/50 p-3 rounded-lg border border-border/50 truncate">
+                                            {newLibPath}
+                                        </div>
+                                    )}
                                 </div>
+
+                                {/* Tip for showing hidden files */}
+                                {!isManualInput && (
+                                    <div className="flex items-start gap-2 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                                        <Keyboard className="w-4 h-4 text-blue-400 mt-0.5 flex-shrink-0" />
+                                        <div className="text-xs text-blue-300">
+                                            <strong>提示：</strong>在文件选择对话框中按 <kbd className="px-1.5 py-0.5 bg-white/10 rounded text-[10px] font-mono">⌘ Cmd</kbd> + <kbd className="px-1.5 py-0.5 bg-white/10 rounded text-[10px] font-mono">⇧ Shift</kbd> + <kbd className="px-1.5 py-0.5 bg-white/10 rounded text-[10px] font-mono">.</kbd> 可以显示隐藏文件夹（如 <code>.agent</code>）
+                                        </div>
+                                    </div>
+                                )}
 
                                 <div>
                                     <label className="text-sm text-muted mb-1.5 block">名称</label>
