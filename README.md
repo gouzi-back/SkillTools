@@ -63,6 +63,22 @@ npm run tauri dev
 npm run tauri build
 ```
 
+## 📦 安装说明
+
+### macOS 用户
+
+由于本项目未进行 Apple 开发者签名（为了保持完全开源免费），首次在 macOS 上打开下载的 `.dmg` / `.app` 时，系统可能会提示 **"文件已损坏，无法打开"** 或 **"无法验证开发者"**。
+
+这不是应用真的坏了，而是 macOS 的 Gatekeeper 安全机制拦截了未签名的应用。请按照以下步骤解决：
+
+1. 下载并安装 `.dmg` 文件。
+2. 打开终端（Terminal）。
+3. 运行以下命令（移除隔离属性）：
+   ```bash
+   xattr -cr /Applications/SkillTools.app
+   ```
+4. 现在你可以正常从启动台打开应用了。
+
 ## 📂 目录结构规范
 
 SkillTools 推荐采用以下标准技能目录结构：
